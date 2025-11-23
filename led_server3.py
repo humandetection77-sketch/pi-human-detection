@@ -1,22 +1,16 @@
+from gpiozero import LED
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import RPi.GPIO as GPIO
 
-LED_PIN = 18  # GPIO18
-
-# === GPIO Setup ===
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(LED_PIN, GPIO.OUT)
-GPIO.output(LED_PIN, GPIO.LOW)
+LED_PIN = 18
+led = LED(LED_PIN)  # gpiozero handles SOC access correctly on Pi 5
 
 class LEDHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/on":
-            GPIO.output(LED_PIN, GPIO.HIGH)
-            print("LED ON")
+            led.on()
             self.respond(b"LED ON")
         elif self.path == "/off":
-            GPIO.output(LED_PIN, GPIO.LOW)
-            print("LED OFF")
+            led.off()
             self.respond(b"LED OFF")
         else:
             self.respond(b"Unknown command")
@@ -27,9 +21,6 @@ class LEDHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(msg)
 
-try:
-    server = HTTPServer(("0.0.0.0", 8080), LEDHandler)
-    print("LED server running on port 8080...")
-    server.serve_forever()
-finally:
-    GPIO.cleanup()
+server = HTTPServer(("0.0.0.0", 8080), LEDHandler)
+print("LED server running on port 8080...")
+server.serve_forever()
