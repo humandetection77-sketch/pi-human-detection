@@ -1,17 +1,21 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from gpiozero import LED
+import RPi.GPIO as GPIO
 
-LED_PIN = 18
-led = LED(LED_PIN)
+LED_PIN = 18  # GPIO18
+
+# === GPIO Setup ===
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LED_PIN, GPIO.OUT)
+GPIO.output(LED_PIN, GPIO.LOW)
 
 class LEDHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/on":
-            led.on()
+            GPIO.output(LED_PIN, GPIO.HIGH)
             print("LED ON")
             self.respond(b"LED ON")
         elif self.path == "/off":
-            led.off()
+            GPIO.output(LED_PIN, GPIO.LOW)
             print("LED OFF")
             self.respond(b"LED OFF")
         else:
@@ -28,4 +32,4 @@ try:
     print("LED server running on port 8080...")
     server.serve_forever()
 finally:
-    led.off()
+    GPIO.cleanup()
